@@ -193,7 +193,7 @@ pub(crate) mod arm {
             }
 
             #[cfg(all(
-                any(target_os = "android", target_os = "linux", target_os = "fuchsia"),
+                any(target_os = "android", target_os = "linux", target_os = "fuchsia", target_os = "switch"),
                 any(target_arch = "arm", target_arch = "aarch64")
             ))]
             {
@@ -208,7 +208,7 @@ pub(crate) mod arm {
     }
 
     // Keep in sync with `ARMV7_NEON`.
-    #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+    #[cfg(all(any(target_arch = "aarch64", target_arch = "arm"), not(target_os = "switch")))]
     pub(crate) const NEON: Feature = Feature {
         mask: 1 << 0,
         ios: true,
@@ -239,7 +239,7 @@ pub(crate) mod arm {
     };
 
     #[cfg(all(
-        any(target_os = "android", target_os = "linux", target_os = "fuchsia"),
+        any(target_os = "android", target_os = "linux", target_os = "fuchsia", target_os = "switch"),
         any(target_arch = "arm", target_arch = "aarch64")
     ))]
     extern "C" {
