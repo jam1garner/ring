@@ -496,11 +496,14 @@ fn build_library(
         // Handled below.
         let _ = c.cargo_metadata(false);
 
-        c.compile(
-            lib_path
-                .file_name()
-                .and_then(|f| f.to_str())
-                .expect("No filename"),
+        c
+            .compiler("aarch64-none-elf-gcc")
+            .compile(
+                lib_path
+                    .file_name()
+                    .and_then(|f| f.to_str()
+            )
+            .expect("No filename"),
         );
     }
 
@@ -615,7 +618,7 @@ fn cc(
         let _ = c.flag("-U_FORTIFY_SOURCE");
     }
 
-    let mut c = c.get_compiler().to_command();
+    let mut c = c.compiler("aarch64-none-elf-gcc").get_compiler().to_command();
     let _ = c
         .arg("-c")
         .arg(format!(
