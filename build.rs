@@ -476,11 +476,14 @@ fn build_library(
         // Handled below.
         let _ = c.cargo_metadata(false);
 
-        c.compiler("aarch64-none-elf-gcc").compile(
-            lib_path
-                .file_name()
-                .and_then(|f| f.to_str())
-                .expect("No filename"),
+        c
+            .compiler("aarch64-none-elf-gcc")
+            .compile(
+                lib_path
+                    .file_name()
+                    .and_then(|f| f.to_str()
+            )
+            .expect("No filename"),
         );
     }
 

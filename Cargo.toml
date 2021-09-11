@@ -328,6 +328,9 @@ libc = { version = "0.2.80", default-features = false }
 [target.'cfg(target_os = "switch")'.dependencies]
 nnsdk = "0.1"
 
+[target.'cfg(target_os = "switch")'.dependencies]
+nnsdk = "0.1"
+
 # Keep this in sync with `[dependencies]` in pregenerate_asm/Cargo.toml.
 [build-dependencies]
 cc = { version = "1.0.62", default-features = false }

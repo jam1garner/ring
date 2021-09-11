@@ -195,6 +195,9 @@ use self::darwin::fill as fill_impl;
 #[cfg(any(target_os = "fuchsia"))]
 use self::fuchsia::fill as fill_impl;
 
+#[cfg(target_os = "switch")]
+use self::switch::fill as fill_impl;
+
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sysrand_chunk {
     use crate::{c, error};
@@ -435,7 +438,6 @@ mod fuchsia {
 #[cfg(target_os = "switch")]
 use self::switch::fill as fill_impl;
 
-#[cfg(target_os = "switch")]
 mod switch {
     use crate::error;
 
