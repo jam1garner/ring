@@ -476,15 +476,26 @@ fn build_library(
         // Handled below.
         let _ = c.cargo_metadata(false);
 
-        c
-            .compiler("aarch64-none-elf-gcc")
-            .compile(
-                lib_path
-                    .file_name()
-                    .and_then(|f| f.to_str()
-            )
-            .expect("No filename"),
-        );
+        if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
+            c
+                .compiler("aarch64-none-elf-gcc")
+                .compile(
+                    lib_path
+                        .file_name()
+                        .and_then(|f| f.to_str()
+                )
+                .expect("No filename"),
+            );
+        } else {
+            c
+                .compile(
+                    lib_path
+                        .file_name()
+                        .and_then(|f| f.to_str()
+                )
+                .expect("No filename"),
+            );
+        }
     }
 
     // Link the library. This works even when the library doesn't need to be
@@ -611,16 +622,29 @@ fn cc(
         let _ = c.flag("-U_FORTIFY_SOURCE");
     }
 
-    let mut c = c.compiler("aarch64-none-elf-gcc").get_compiler().to_command();
-    let _ = c
-        .arg("-c")
-        .arg(format!(
-            "{}{}",
-            target.obj_opt,
-            out_dir.to_str().expect("Invalid path")
-        ))
-        .arg(file);
-    c
+    if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
+        let mut c = c.compiler("aarch64-none-elf-gcc").get_compiler().to_command();
+        let _ = c
+            .arg("-c")
+            .arg(format!(
+                "{}{}",
+                target.obj_opt,
+                out_dir.to_str().expect("Invalid path")
+            ))
+            .arg(file);
+        c
+    } else {
+        let mut c = c.get_compiler().to_command();
+        let _ = c
+            .arg("-c")
+            .arg(format!(
+                "{}{}",
+                target.obj_opt,
+                out_dir.to_str().expect("Invalid path")
+            ))
+            .arg(file);
+        c
+    }
 }
 
 fn nasm(file: &Path, arch: &str, out_file: &Path) -> Command {
