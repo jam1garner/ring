@@ -476,7 +476,7 @@ fn build_library(
         // Handled below.
         let _ = c.cargo_metadata(false);
 
-        if env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
+        if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
             c
                 .compiler("aarch64-none-elf-gcc")
                 .compile(
@@ -622,7 +622,7 @@ fn cc(
         let _ = c.flag("-U_FORTIFY_SOURCE");
     }
 
-    if env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
+    if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
         let mut c = c.compiler("aarch64-none-elf-gcc").get_compiler().to_command();
         let _ = c
             .arg("-c")
