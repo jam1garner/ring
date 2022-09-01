@@ -320,7 +320,7 @@ wasm-bindgen-test = { version = "0.3.10", default-features = false }
 libc = { version = "0.2.69", default-features = false }
 
 [target.'cfg(target_os = "switch")'.dependencies]
-nnsdk = "0.1"
+nnsdk = "0.2"
 
 # Keep this in sync with `[dependencies]` in pregenerate_asm/Cargo.toml.
 [build-dependencies]
