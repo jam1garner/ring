@@ -180,12 +180,10 @@ use self::sysrand::fill as fill_impl;
 use self::sysrand_or_urandom::fill as fill_impl;
 
 #[cfg(any(
-    target_os = "dragonfly",
     target_os = "freebsd",
-    target_os = "illumos",
     target_os = "netbsd",
     target_os = "openbsd",
-    target_os = "solaris",
+    target_os = "solaris"
 ))]
 use self::urandom::fill as fill_impl;
 
@@ -194,6 +192,9 @@ use self::darwin::fill as fill_impl;
 
 #[cfg(any(target_os = "fuchsia"))]
 use self::fuchsia::fill as fill_impl;
+
+#[cfg(target_os = "switch")]
+use self::switch::fill as fill_impl;
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sysrand_chunk {
@@ -353,12 +354,10 @@ mod sysrand_or_urandom {
         any(target_os = "android", target_os = "linux"),
         feature = "dev_urandom_fallback"
     ),
-    target_os = "dragonfly",
     target_os = "freebsd",
     target_os = "netbsd",
     target_os = "openbsd",
-    target_os = "solaris",
-    target_os = "illumos"
+    target_os = "solaris"
 ))]
 mod urandom {
     use crate::error;
@@ -431,9 +430,6 @@ mod fuchsia {
         fn zx_cprng_draw(buffer: *mut u8, length: usize);
     }
 }
-
-#[cfg(target_os = "switch")]
-use self::switch::fill as fill_impl;
 
 #[cfg(target_os = "switch")]
 mod switch {

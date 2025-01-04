@@ -193,8 +193,8 @@ void GFp_nistz256_point_add(P256_POINT *r, const P256_POINT *a, const P256_POINT
 void GFp_nistz256_point_mul(P256_POINT *r, const Limb p_scalar[P256_LIMBS],
                             const Limb p_x[P256_LIMBS],
                             const Limb p_y[P256_LIMBS]) {
-  static const size_t kWindowSize = 5;
-  static const crypto_word kMask = (1 << (5 /* kWindowSize */ + 1)) - 1;
+  static const unsigned kWindowSize = 5;
+  static const unsigned kMask = (1 << (5 /* kWindowSize */ + 1)) - 1;
 
   uint8_t p_str[(P256_LIMBS * sizeof(Limb)) + 1];
   gfp_little_endian_bytes_from_scalar(p_str, sizeof(p_str) / sizeof(p_str[0]),
@@ -232,22 +232,23 @@ void GFp_nistz256_point_mul(P256_POINT *r, const Limb p_scalar[P256_LIMBS],
 
   Limb tmp[P256_LIMBS];
   alignas(32) P256_POINT h;
-  static const size_t START_INDEX = 256 - 1;
-  size_t index = START_INDEX;
+  static const unsigned START_INDEX = 256 - 1;
+  unsigned index = START_INDEX;
 
-  crypto_word raw_wvalue;
-  crypto_word recoded_is_negative;
-  crypto_word recoded;
+  unsigned raw_wvalue;
+  Limb recoded_is_negative;
+  unsigned recoded;
 
   raw_wvalue = p_str[(index - 1) / 8];
   raw_wvalue = (raw_wvalue >> ((index - 1) % 8)) & kMask;
+
   booth_recode(&recoded_is_negative, &recoded, raw_wvalue, kWindowSize);
   dev_assert_secret(!recoded_is_negative);
   GFp_nistz256_select_w5(r, table, recoded);
 
   while (index >= kWindowSize) {
     if (index != START_INDEX) {
-      size_t off = (index - 1) / 8;
+      unsigned off = (index - 1) / 8;
 
       raw_wvalue = p_str[off] | p_str[off + 1] << 8;
       raw_wvalue = (raw_wvalue >> ((index - 1) % 8)) & kMask;
@@ -285,12 +286,12 @@ void GFp_nistz256_point_mul(P256_POINT *r, const Limb p_scalar[P256_LIMBS],
 /* Precomputed tables for the default generator */
 #include "ecp_nistz256_table.inl"
 
-static const size_t kWindowSize = 7;
+static const unsigned kWindowSize = 7;
 
 static inline void select_precomputed(P256_POINT_AFFINE *p, size_t i,
-                                      crypto_word raw_wvalue) {
-  crypto_word recoded_is_negative;
-  crypto_word recoded;
+                                      unsigned raw_wvalue) {
+  Limb recoded_is_negative;
+  unsigned recoded;
   booth_recode(&recoded_is_negative, &recoded, raw_wvalue, kWindowSize);
   GFp_nistz256_select_w7(p, GFp_nistz256_precomputed[i], recoded);
   Limb neg_y[P256_LIMBS];
@@ -311,18 +312,18 @@ static Limb is_infinity(const Limb x[P256_LIMBS],
 
 void GFp_nistz256_point_mul_base(P256_POINT *r,
                                  const Limb g_scalar[P256_LIMBS]) {
-  static const crypto_word kMask = (1 << (7 /* kWindowSize */ + 1)) - 1;
+  static const unsigned kMask = (1 << (7 /* kWindowSize */ + 1)) - 1;
 
   uint8_t p_str[(P256_LIMBS * sizeof(Limb)) + 1];
   gfp_little_endian_bytes_from_scalar(p_str, sizeof(p_str) / sizeof(p_str[0]),
                                       g_scalar, P256_LIMBS);
 
   /* First window */
-  size_t index = kWindowSize;
+  unsigned index = kWindowSize;
 
   alignas(32) P256_POINT_AFFINE t;
 
-  crypto_word raw_wvalue = (p_str[0] << 1) & kMask;
+  unsigned raw_wvalue = (p_str[0] << 1) & kMask;
   select_precomputed(&t, 0, raw_wvalue);
 
   alignas(32) P256_POINT p;
@@ -333,7 +334,7 @@ void GFp_nistz256_point_mul_base(P256_POINT *r,
   copy_conditional(p.Z, p.X, is_infinity(p.X, p.Y));
 
   for (size_t i = 1; i < 37; i++) {
-    size_t off = (index - 1) / 8;
+    unsigned off = (index - 1) / 8;
     raw_wvalue = p_str[off] | p_str[off + 1] << 8;
     raw_wvalue = (raw_wvalue >> ((index - 1) % 8)) & kMask;
     index += kWindowSize;

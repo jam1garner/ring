@@ -16,13 +16,13 @@
 use super::{counter, iv::Iv, quic::Sample, BLOCK_LEN};
 use crate::{c, endian::*};
 
-#[repr(transparent)]
-pub struct Key([LittleEndian<u32>; KEY_LEN / 4]);
+#[repr(C)]
+pub struct Key([u8; KEY_LEN]);
 
 impl From<[u8; KEY_LEN]> for Key {
     #[inline]
     fn from(value: [u8; KEY_LEN]) -> Self {
-        Self(FromByteArray::from_byte_array(&value))
+        Self(value)
     }
 }
 
@@ -120,12 +120,6 @@ impl Key {
         }
 
         GFp_ChaCha20_ctr32(output, input, in_out_len, self, &iv);
-    }
-
-    #[cfg(target_arch = "x86_64")]
-    #[inline]
-    pub(super) fn words_less_safe(&self) -> &[LittleEndian<u32>; KEY_LEN / 4] {
-        &self.0
     }
 }
 

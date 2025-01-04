@@ -25,6 +25,7 @@ use crate::{
     pkcs8, rand, signature,
 };
 use alloc::boxed::Box;
+use untrusted;
 
 /// An RSA key pair, used for signing.
 pub struct RsaKeyPair {
@@ -620,7 +621,8 @@ mod tests {
         const MESSAGE: &[u8] = b"hello, world";
         let rng = rand::SystemRandom::new();
 
-        const PRIVATE_KEY_DER: &[u8] = include_bytes!("signature_rsa_example_private_key.der");
+        const PRIVATE_KEY_DER: &'static [u8] =
+            include_bytes!("signature_rsa_example_private_key.der");
         let key_pair = signature::RsaKeyPair::from_der(PRIVATE_KEY_DER).unwrap();
 
         // The output buffer is one byte too short.
