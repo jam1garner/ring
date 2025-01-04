@@ -46,6 +46,7 @@ use core::{
     marker::PhantomData,
     ops::{Deref, DerefMut},
 };
+use untrusted;
 
 pub unsafe trait Prime {}
 
@@ -85,7 +86,7 @@ impl<M> Clone for BoxedLimbs<M> {
     fn clone(&self) -> Self {
         Self {
             limbs: self.limbs.clone(),
-            m: self.m,
+            m: self.m.clone(),
         }
     }
 }
@@ -136,7 +137,7 @@ impl<M> BoxedLimbs<M> {
 
     fn zero(width: Width<M>) -> Self {
         Self {
-            limbs: vec![0; width.num_limbs].into_boxed_slice(),
+            limbs: vec![0; width.num_limbs].to_owned().into_boxed_slice(),
             m: PhantomData,
         }
     }
@@ -263,7 +264,6 @@ impl<M> Modulus<M> {
 
         // n_mod_r = n % r. As explained in the documentation for `n0`, this is
         // done by taking the lowest `N0_LIMBS_USED` limbs of `n`.
-        #[allow(clippy::useless_conversion)]
         let n0 = {
             extern "C" {
                 fn GFp_bn_neg_inv_mod_r_u64(n: u64) -> u64;
@@ -389,7 +389,7 @@ impl<M, E> Clone for Elem<M, E> {
     fn clone(&self) -> Self {
         Self {
             limbs: self.limbs.clone(),
-            encoding: self.encoding,
+            encoding: self.encoding.clone(),
         }
     }
 }
@@ -1169,7 +1169,7 @@ impl Nonnegative {
                 return Err(error::Unspecified);
             }
         }
-        Ok(())
+        return Ok(());
     }
 }
 
@@ -1397,6 +1397,7 @@ mod tests {
     use super::*;
     use crate::test;
     use alloc::format;
+    use untrusted;
 
     // Type-level representation of an arbitrary modulus.
     struct M {}
@@ -1529,7 +1530,7 @@ mod tests {
     #[test]
     fn test_modulus_debug() {
         let (modulus, _) = Modulus::<M>::from_be_bytes_with_bit_length(untrusted::Input::from(
-            &[0xff; LIMB_BYTES * MODULUS_MIN_LIMBS],
+            &vec![0xff; LIMB_BYTES * MODULUS_MIN_LIMBS],
         ))
         .unwrap();
         assert_eq!("Modulus", format!("{:?}", modulus));

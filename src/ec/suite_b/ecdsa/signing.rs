@@ -26,6 +26,8 @@ use crate::{
     io::der,
     limb, pkcs8, rand, sealed, signature,
 };
+use untrusted;
+
 /// An ECDSA signing algorithm.
 pub struct EcdsaSigningAlgorithm {
     curve: &'static ec::Curve,

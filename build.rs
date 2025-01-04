@@ -19,6 +19,24 @@
 // another for the concrete logging implementation). Instead we use `eprintln!`
 // to log everything to stderr.
 
+#![forbid(
+    anonymous_parameters,
+    box_pointers,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unstable_features,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications,
+    unused_results,
+    variant_size_differences,
+    warnings
+)]
+
 // In the `pregenerate_asm_main()` case we don't want to access (Cargo)
 // environment variables at all, so avoid `use std::env` here.
 
@@ -34,14 +52,13 @@ const X86_64: &str = "x86_64";
 const AARCH64: &str = "aarch64";
 const ARM: &str = "arm";
 
-#[rustfmt::skip]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 const RING_SRCS: &[(&[&str], &str)] = &[
     (&[], "crypto/fipsmodule/aes/aes_nohw.c"),
     (&[], "crypto/fipsmodule/bn/montgomery.c"),
     (&[], "crypto/fipsmodule/bn/montgomery_inv.c"),
     (&[], "crypto/limbs/limbs.c"),
     (&[], "crypto/mem.c"),
-    (&[], "crypto/poly1305/poly1305.c"),
 
     (&[AARCH64, ARM, X86_64, X86], "crypto/crypto.c"),
     (&[AARCH64, ARM, X86_64, X86], "crypto/curve25519/curve25519.c"),
@@ -58,6 +75,7 @@ const RING_SRCS: &[(&[&str], &str)] = &[
     (&[X86], "crypto/chacha/asm/chacha-x86.pl"),
     (&[X86], "crypto/fipsmodule/ec/asm/ecp_nistz256-x86.pl"),
     (&[X86], "crypto/fipsmodule/modes/asm/ghash-x86.pl"),
+    (&[X86], "crypto/poly1305/asm/poly1305-x86.pl"),
 
     (&[X86_64], "crypto/fipsmodule/aes/asm/aesni-x86_64.pl"),
     (&[X86_64], "crypto/fipsmodule/aes/asm/vpaes-x86_64.pl"),
@@ -67,9 +85,8 @@ const RING_SRCS: &[(&[&str], &str)] = &[
     (&[X86_64], "crypto/fipsmodule/ec/asm/p256-x86_64-asm.pl"),
     (&[X86_64], "crypto/fipsmodule/modes/asm/aesni-gcm-x86_64.pl"),
     (&[X86_64], "crypto/fipsmodule/modes/asm/ghash-x86_64.pl"),
-    (&[X86_64], "crypto/poly1305/poly1305_vec.c"),
+    (&[X86_64], "crypto/poly1305/asm/poly1305-x86_64.pl"),
     (&[X86_64], SHA512_X86_64),
-    (&[X86_64], "crypto/cipher_extra/asm/chacha20_poly1305_x86_64.pl"),
 
     (&[AARCH64, ARM], "crypto/fipsmodule/aes/asm/aesv8-armx.pl"),
     (&[AARCH64, ARM], "crypto/fipsmodule/modes/asm/ghashv8-armx.pl"),
@@ -81,8 +98,7 @@ const RING_SRCS: &[(&[&str], &str)] = &[
     (&[ARM], "crypto/curve25519/asm/x25519-asm-arm.S"),
     (&[ARM], "crypto/fipsmodule/ec/asm/ecp_nistz256-armv4.pl"),
     (&[ARM], "crypto/fipsmodule/modes/asm/ghash-armv4.pl"),
-    (&[ARM], "crypto/poly1305/poly1305_arm.c"),
-    (&[ARM], "crypto/poly1305/poly1305_arm_asm.S"),
+    (&[ARM], "crypto/poly1305/asm/poly1305-armv4.pl"),
     (&[ARM], "crypto/fipsmodule/sha/asm/sha256-armv4.pl"),
     (&[ARM], "crypto/fipsmodule/sha/asm/sha512-armv4.pl"),
 
@@ -91,6 +107,7 @@ const RING_SRCS: &[(&[&str], &str)] = &[
     (&[AARCH64], "crypto/chacha/asm/chacha-armv8.pl"),
     (&[AARCH64], "crypto/fipsmodule/ec/asm/ecp_nistz256-armv8.pl"),
     (&[AARCH64], "crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl"),
+    (&[AARCH64], "crypto/poly1305/asm/poly1305-armv8.pl"),
     (&[AARCH64], SHA512_ARMV8),
 ];
 
@@ -102,7 +119,7 @@ const SHA512_ARMV8: &str = "crypto/fipsmodule/sha/asm/sha512-armv8.pl";
 
 const RING_TEST_SRCS: &[&str] = &[("crypto/constant_time_test.c")];
 
-#[rustfmt::skip]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 const RING_INCLUDES: &[&str] =
     &[
       "crypto/curve25519/curve25519_tables.h",
@@ -116,20 +133,19 @@ const RING_INCLUDES: &[&str] =
       "crypto/internal.h",
       "crypto/limbs/limbs.h",
       "crypto/limbs/limbs.inl",
-      "crypto/poly1305/internal.h",
+      "crypto/fipsmodule/modes/internal.h",
       "include/GFp/aes.h",
       "include/GFp/arm_arch.h",
       "include/GFp/base.h",
       "include/GFp/check.h",
       "include/GFp/cpu.h",
       "include/GFp/mem.h",
-      "include/GFp/poly1305.h",
       "include/GFp/type_check.h",
       "third_party/fiat/curve25519_32.h",
       "third_party/fiat/curve25519_64.h",
     ];
 
-#[rustfmt::skip]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 const RING_PERL_INCLUDES: &[&str] =
     &["crypto/perlasm/arm-xlate.pl",
       "crypto/perlasm/x86gas.pl",
@@ -219,7 +235,6 @@ const ASM_TARGETS: &[(&str, Option<&str>, Option<&str>)] = &[
     ("x86_64", Some(WINDOWS), Some("nasm")),
     ("x86_64", None, Some("elf")),
     ("aarch64", Some("ios"), Some("ios64")),
-    ("aarch64", Some("macos"), Some("ios64")),
     ("aarch64", None, Some("linux64")),
     ("x86", Some(WINDOWS), Some("win32n")),
     ("x86", Some("ios"), Some("macosx")),
@@ -247,6 +262,10 @@ fn main() {
 
 fn ring_build_rs_main() {
     use std::env;
+
+    for (key, value) in env::vars() {
+        eprintln!("ENV {}={}", key, value);
+    }
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = PathBuf::from(out_dir);
@@ -304,8 +323,9 @@ fn pregenerate_asm_main() {
             if target_os == Some(WINDOWS) {
                 let srcs = asm_srcs(perlasm_src_dsts);
                 for src in srcs {
-                    let obj_path = obj_path(&pregenerated, &src, MSVC_OBJ_EXT);
-                    run_command(nasm(&src, target_arch, &obj_path));
+                    let src_path = PathBuf::from(src);
+                    let obj_path = obj_path(&pregenerated, &src_path, MSVC_OBJ_EXT);
+                    run_command(yasm(&src_path, target_arch, &obj_path));
                 }
             }
         }
@@ -353,7 +373,7 @@ fn build_c_code(target: &Target, pregenerated: PathBuf, out_dir: &Path) {
         .iter()
         .find(|entry| {
             let &(entry_arch, entry_os, _) = *entry;
-            entry_arch == target.arch && is_none_or_equals(entry_os, &target.os)
+            entry_arch == &target.arch && is_none_or_equals(entry_os, &target.os)
         })
         .unwrap();
 
@@ -384,7 +404,7 @@ fn build_c_code(target: &Target, pregenerated: PathBuf, out_dir: &Path) {
         // For Windows we also pregenerate the object files for non-Git builds so
         // the user doesn't need to install the assembler. On other platforms we
         // assume the C compiler also assembles.
-        if use_pregenerated && target.os == WINDOWS {
+        if use_pregenerated && &target.os == WINDOWS {
             // The pregenerated object files always use ".obj" as the extension,
             // even when the C/C++ compiler outputs files with the ".o" extension.
             asm_srcs = asm_srcs
@@ -441,8 +461,8 @@ fn build_library(
 ) {
     // Compile all the (dirty) source files into object files.
     let objs = additional_srcs
-        .iter()
-        .chain(srcs.iter())
+        .into_iter()
+        .chain(srcs.into_iter())
         .filter(|f| &target.env != "msvc" || f.extension().unwrap().to_str().unwrap() != "S")
         .map(|f| compile(f, target, warnings_are_errors, out_dir, includes_modified))
         .collect::<Vec<_>>();
@@ -466,7 +486,7 @@ fn build_library(
                 let _ = c.flag("-Wl,-dead_strip");
             }
             _ => {
-                let _ = c.flag("-Wl,--gc-sections");
+                let _ = c.flag("-Wl,--gc-sections".into());
             }
         }
         for o in objs {
@@ -476,26 +496,15 @@ fn build_library(
         // Handled below.
         let _ = c.cargo_metadata(false);
 
-        if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
-            c
-                .compiler("aarch64-none-elf-gcc")
-                .compile(
-                    lib_path
-                        .file_name()
-                        .and_then(|f| f.to_str()
-                )
-                .expect("No filename"),
-            );
-        } else {
-            c
-                .compile(
-                    lib_path
-                        .file_name()
-                        .and_then(|f| f.to_str()
-                )
-                .expect("No filename"),
-            );
-        }
+        c
+            .compiler("aarch64-none-elf-gcc")
+            .compile(
+                lib_path
+                    .file_name()
+                    .and_then(|f| f.to_str()
+            )
+            .expect("No filename"),
+        );
     }
 
     // Link the library. This works even when the library doesn't need to be
@@ -514,13 +523,13 @@ fn compile(
     if ext == "obj" {
         p.to_str().expect("Invalid path").into()
     } else {
-        let mut out_path = out_dir.join(p.file_name().unwrap());
+        let mut out_path = out_dir.clone().join(p.file_name().unwrap());
         assert!(out_path.set_extension(target.obj_ext));
         if need_run(&p, &out_path, includes_modified) {
-            let cmd = if target.os != WINDOWS || ext != "asm" {
+            let cmd = if &target.os != WINDOWS || ext != "asm" {
                 cc(p, ext, target, warnings_are_errors, &out_path)
             } else {
-                nasm(p, &target.arch, &out_path)
+                yasm(p, &target.arch, &out_path)
             };
 
             run_command(cmd);
@@ -530,7 +539,7 @@ fn compile(
 }
 
 fn obj_path(out_dir: &Path, src: &Path, obj_ext: &str) -> PathBuf {
-    let mut out_path = out_dir.join(src.file_name().unwrap());
+    let mut out_path = out_dir.clone().join(src.file_name().unwrap());
     assert!(out_path.set_extension(obj_ext));
     out_path
 }
@@ -542,8 +551,6 @@ fn cc(
     warnings_are_errors: bool,
     out_dir: &Path,
 ) -> Command {
-    let is_musl = target.env.starts_with("musl");
-
     let mut c = cc::Build::new();
     let _ = c.include("include");
     match ext {
@@ -558,9 +565,9 @@ fn cc(
     for f in cpp_flags(target) {
         let _ = c.flag(&f);
     }
-    if target.os != "none"
-        && target.os != "redox"
-        && target.os != "windows"
+    if &target.os != "none"
+        && &target.os != "redox"
+        && &target.os != "windows"
         && target.arch != "wasm32"
     {
         let _ = c.flag("-fstack-protector");
@@ -590,19 +597,8 @@ fn cc(
         }
     }
 
-    // Allow cross-compiling without a target sysroot for these targets.
-    //
-    // poly1305_vec.c requires <emmintrin.h> which requires <stdlib.h>.
-    if (target.arch == "wasm32" && target.os == "unknown")
-        || (target.os == "linux" && is_musl && target.arch != "x86_64")
-    {
-        if let Ok(compiler) = c.try_get_compiler() {
-            // TODO: Expand this to non-clang compilers in 0.17.0 if practical.
-            if compiler.is_like_clang() {
-                let _ = c.flag("-nostdlibinc");
-                let _ = c.define("GFp_NOSTDLIBINC", "1");
-            }
-        }
+    if (target.arch.as_str(), target.os.as_str()) == ("wasm32", "unknown") {
+        let _ = c.flag("--no-standard-libraries");
     }
 
     if warnings_are_errors {
@@ -613,7 +609,7 @@ fn cc(
         };
         let _ = c.flag(flag);
     }
-    if is_musl {
+    if &target.env == "musl" {
         // Some platforms enable _FORTIFY_SOURCE by default, but musl
         // libc doesn't support it yet. See
         // http://wiki.musl-libc.org/wiki/Future_Ideas#Fortify
@@ -622,45 +618,33 @@ fn cc(
         let _ = c.flag("-U_FORTIFY_SOURCE");
     }
 
-    if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "switch" {
-        let mut c = c.compiler("aarch64-none-elf-gcc").get_compiler().to_command();
-        let _ = c
-            .arg("-c")
-            .arg(format!(
-                "{}{}",
-                target.obj_opt,
-                out_dir.to_str().expect("Invalid path")
-            ))
-            .arg(file);
-        c
-    } else {
-        let mut c = c.get_compiler().to_command();
-        let _ = c
-            .arg("-c")
-            .arg(format!(
-                "{}{}",
-                target.obj_opt,
-                out_dir.to_str().expect("Invalid path")
-            ))
-            .arg(file);
-        c
-    }
+    let mut c = c.compiler("aarch64-none-elf-gcc").get_compiler().to_command();
+    let _ = c
+        .arg("-c")
+        .arg(format!(
+            "{}{}",
+            target.obj_opt,
+            out_dir.to_str().expect("Invalid path")
+        ))
+        .arg(file);
+    c
 }
 
-fn nasm(file: &Path, arch: &str, out_file: &Path) -> Command {
-    let oformat = match arch {
-        "x86_64" => ("win64"),
-        "x86" => ("win32"),
+fn yasm(file: &Path, arch: &str, out_file: &Path) -> Command {
+    let (oformat, machine) = match arch {
+        "x86_64" => ("--oformat=win64", "--machine=amd64"),
+        "x86" => ("--oformat=win32", "--machine=x86"),
         _ => panic!("unsupported arch: {}", arch),
     };
-    let mut c = Command::new("./target/tools/nasm");
+    let mut c = Command::new("yasm.exe");
     let _ = c
+        .arg("-X")
+        .arg("vc")
+        .arg("--dformat=cv8")
+        .arg(oformat)
+        .arg(machine)
         .arg("-o")
         .arg(out_file.to_str().expect("Invalid path"))
-        .arg("-f")
-        .arg(oformat)
-        .arg("-Xgnu")
-        .arg("-gcv8")
         .arg(file);
     c
 }
@@ -799,7 +783,7 @@ fn file_modified(path: &Path) -> SystemTime {
 }
 
 fn get_command(var: &str, default: &str) -> String {
-    std::env::var(var).unwrap_or_else(|_| default.into())
+    std::env::var(var).unwrap_or(default.into())
 }
 
 fn check_all_files_tracked() {

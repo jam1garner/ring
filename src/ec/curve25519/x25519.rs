@@ -17,6 +17,7 @@
 use super::{ops, scalar::SCALAR_LEN};
 use crate::{agreement, constant_time, cpu, ec, error, rand};
 use core::convert::TryInto;
+use untrusted;
 
 static CURVE25519: ec::Curve = ec::Curve {
     public_key_len: PUBLIC_KEY_LEN,

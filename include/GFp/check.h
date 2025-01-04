@@ -17,13 +17,12 @@
 
 // |debug_assert_nonsecret| is like |assert| and should be used (only) when the
 // assertion does not have any potential to leak a secret. |NDEBUG| controls this
-// exactly like |assert|. It is emulated when there is no assert.h to make
-// cross-building easier.
+// exactly like |assert|. It is emulated for WebAssembly so that <assert.h> is
+// not required for it.
 //
 // When reviewing uses of |debug_assert_nonsecret|, verify that the check
 // really does not have potential to leak a secret.
-
-#if !defined(GFp_NOSTDLIBINC)
+#if !defined(__wasm__)
 # include <assert.h>
 # define debug_assert_nonsecret(x) assert(x)
 #else

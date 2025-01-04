@@ -23,6 +23,7 @@ use crate::{
     io::der,
     limb, sealed, signature,
 };
+use untrusted;
 
 /// An ECDSA verification algorithm.
 pub struct EcdsaVerificationAlgorithm {

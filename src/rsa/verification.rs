@@ -22,6 +22,8 @@ use crate::{
     sealed, signature,
 };
 
+use untrusted;
+
 #[derive(Debug)]
 pub struct Key {
     pub n: bigint::Modulus<N>,

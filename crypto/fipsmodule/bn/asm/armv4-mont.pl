@@ -112,8 +112,6 @@ $code=<<___;
 #endif
 
 #if __ARM_MAX_ARCH__>=7
-.extern GFp_armcap_P
-.hidden GFp_armcap_P
 .align	5
 .LOPENSSL_armcap:
 .word	GFp_armcap_P-.Lbn_mul_mont
@@ -746,6 +744,11 @@ ___
 }
 $code.=<<___;
 .asciz	"Montgomery multiplication for ARMv4/NEON, CRYPTOGAMS by <appro\@openssl.org>"
+.align	2
+#if __ARM_MAX_ARCH__>=7
+.comm	GFp_armcap_P,4,4
+.hidden	GFp_armcap_P
+#endif
 ___
 
 foreach (split("\n",$code)) {
